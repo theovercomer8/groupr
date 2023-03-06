@@ -61,7 +61,6 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
         self.clip_preprocess = clip_preprocess
         self.device = device
         self.clip_model = clip_model
-        os.makedirs(self.cache_path,exist_ok=True)
 
     def __len__(self):
         return len(self.images)
@@ -142,13 +141,13 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
                 features =  self.image_to_features(img)
                 torch.save(features, cached_name)
             
-            cached_name = self.get_cached_path(img_path,'_thumb.webp')
+            # cached_name = self.get_cached_path(img_path,'_thumb.webp')
 
-            if not os.path.exists(cached_name):
-                if img is None:
-                    img = Image.open(img_path).convert('RGB')
-                    img = self.image_to_thumb(img)
-                    img.save(cached_name,'WEBP')
+            # if not os.path.exists(cached_name):
+            #     if img is None:
+            #         img = Image.open(img_path).convert('RGB')
+            #         img = self.image_to_thumb(img)
+            #         img.save(cached_name,'WEBP')
 
 
             

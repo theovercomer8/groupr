@@ -10,16 +10,19 @@ Image.init()
 
 with gr.Blocks() as app:
     gr.HTML('<script src="https://cdnjs.cloudflare.com/ajax/libs/galleria/1.6.1/galleria.min.js"></script>')
+
     output = gr.Textbox(label="Status")
     folder = gr.Textbox(label="Dataset Path")
-    
+    uploaded = gr.Gallery(visible=False).style(grid=2)
     f = gr.Files(file_types=['image'])
 
     files_list = []
     def file_change(files):
         global files_list
         files_list = files
-    f.change(file_change,inputs=f)
+        v = [file.name for file in files]
+        return {uploaded: gr.update(visible=True, value = v)}
+    f.change(file_change,inputs=f, outputs=uploaded)
     go_btn = gr.Button("Goooooooo!")
     gal = gr.Gallery().style(grid=(2,3,4,5,6))
     def track_tqdm(files_list, folder_path, progress=gr.Progress(track_tqdm=True)):

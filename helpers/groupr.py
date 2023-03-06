@@ -61,6 +61,8 @@ def process(files,folder):
     if config is None:
         config = Config()
 
+    os.makedirs(config.cache_path,exist_ok=True)
+
     config.files = files
     config.folder = folder
     paths = []
