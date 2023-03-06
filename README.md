@@ -8,7 +8,7 @@ CLIP-Based Image Dataset Similarity Analysis
 
 `pip install -r requirements.txt`
 
-`gradio groupr.py`
+`python groupr.py`
 
 Open the web app when it launches.
 
