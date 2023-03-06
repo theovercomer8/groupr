@@ -80,7 +80,7 @@ def process(files,folder):
     data = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False,
                                        num_workers=config.max_workers, collate_fn=collate_fn_remove_corrupted, drop_last=False)
 
-    imgs = [Image.open(file) for file in config.files]
+    imgs = [Image.open(file.name) for file in config.files]
     T = [dataset.image_to_features(img) for img in imgs]
     config.T = torch.mean(torch.stack(T,dim=0),dim=0,keepdim=True).squeeze(0)
     features = Array('d', range(len(paths)), lock=False)

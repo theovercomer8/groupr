@@ -5,6 +5,7 @@ import time
 import sys
 from helpers import groupr
 from PIL import Image
+Image.init()
 
 
 with gr.Blocks() as app:
