@@ -1,0 +1,7 @@
+gradio
+tqdm
+open_clip_torch
+torch
+pillow
+numpy
+opencv-python
