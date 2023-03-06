@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 import re
 import os
+import hashlib
 
 class Worker:
     class Initter:
@@ -65,11 +66,22 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.images)
 
-    def get_cached_path(self,path,ext,prepend_cache_folder=True):
+    def get_cached_path(self,path,ext,prepend_cache_folder=True,hashed_folders=True):
         cp = self.cache_path 
 
         base = os.path.splitext(path)[0]
-        base = re.sub(r'[:/\\]','_',base)
+        base = re.sub(r'[:/ \\]','_',base)
+        if prepend_cache_folder:
+            if hashed_folders:
+                h = hashlib.new('sha256')
+                h.update(base.encode()) 
+                h = h.hexdigest()[:3]
+                cp = os.path.join(cp,h[0])
+                os.makedirs(cp,exist_ok=True)
+                cp = os.path.join(cp,h[1])
+                os.makedirs(cp,exist_ok=True)
+                cp = os.path.join(cp,h[2])
+                os.makedirs(cp,exist_ok=True)
         return os.path.join(cp,base + ext) if prepend_cache_folder else base + ext
 
     def image_to_thumb(self, image: Image) -> Image:
@@ -124,6 +136,7 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
             img_path = self.images[idx]
             img = None
             name = os.path.splitext(img_path)[0] + '.pt'
+            old_cached_name = self.get_cached_path(img_path,'.pt',hashed_folders=False)
             cached_name = self.get_cached_path(img_path,'.pt')
             features = None
             if os.path.exists(name):
@@ -131,6 +144,12 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
                     features = torch.load(name,map_location=torch.device(self.device))
                 except UnpicklingError as e:
                     pass
+            elif os.path.exists(old_cached_name):
+                try:
+                    features = torch.load(old_cached_name,map_location=torch.device(self.device))
+                except UnpicklingError as e:
+                    pass
+
             elif os.path.exists(cached_name):
                 try:
                     features = torch.load(cached_name,map_location=torch.device(self.device))

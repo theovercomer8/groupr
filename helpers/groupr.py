@@ -106,14 +106,13 @@ def process(files,folder):
     
     d = {}
     for idx, p in enumerate(paths):
-         d[p] = features[idx], dataset.get_cached_path(p,'_thumb.webp')
+         d[p] = features[idx], p
 
     a = sorted(d.items(), key=lambda x: x[1][0], reverse=True)[:config.max_results]
     json_object = json.dumps(a, indent=4)
     md = ''
-    # md =  f'![alt]({str(config.params.img.absolute()).replace(" ","%20").replace("/home/ubuntu","")})\n\n'
     for item in a:
-        md += f'### {item[1][0]}\n![{item[0]}]({item[1][1].replace(" ","%20").replace("/home/ubuntu","")} "{item[1][0]}")\n\n\n'
+        md += f'### {item[1][0]}\n![{item[0]}]({item[1][1].replace(" ","%20")} "{item[1][0]}")\n\n\n'
     # Writing to sample.json
 
     e = time.time()
