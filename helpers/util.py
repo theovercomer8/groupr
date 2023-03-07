@@ -135,6 +135,8 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
         return img
         
     def image_to_features(self, image: Image) -> torch.Tensor:
+        if self.clip_model is None or self.clip_preprocess is None:
+            load_clip_model(self)
         images = self.clip_preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad(), torch.cuda.amp.autocast():
             image_features = self.clip_model.encode_image(images)
@@ -195,7 +197,6 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
 
 
 def load_clip_model(cfg):
-        global config
         config = cfg
         start_time = time.time()
         logging.info(f'Config cache path: {config.cache_path}')
