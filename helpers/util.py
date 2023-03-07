@@ -58,17 +58,18 @@ class Worker:
 
 
 class TensorLoadingDataset(torch.utils.data.Dataset):
-    def __init__(self, image_paths, cache_path, clip_preprocess, device, clip_model, debug):
+    def __init__(self, image_paths, cache_path, clip_preprocess, device, clip_model, debug, log_path):
         self.images = image_paths
         self.cache_path = cache_path
         self.clip_preprocess = clip_preprocess
         self.device = device
         self.clip_model = clip_model
-
+        self.log_path = log_path
+        self.e = time.time()
+        self.debug = debug
         if debug:
-            e = time.time()
             pid = os.getpid()
-            logging.basicConfig(filename=os.path.join(config.log_path,f'similarity_{e}_p{pid}.debug.txt'),
+            logging.basicConfig(filename=os.path.join(self.log_path,f'similarity_{self.e}_p{pid}.debug.txt'),
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
@@ -141,8 +142,15 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
         return image_features
 
     def __getitem__(self, idx) -> torch.Tensor:
+        if self.debug:
+            pid = os.getpid()
+            logging.basicConfig(filename=os.path.join(self.log_path,f'similarity_{self.e}_p{pid}.debug.txt'),
+                            filemode='a',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
         try:
-    
+            
             img_path = self.images[idx]
             img = None
             name = os.path.splitext(img_path)[0] + '.pt'

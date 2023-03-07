@@ -81,7 +81,7 @@ def process(cfg:Config):
     if config.clip_model is None:
         load_clip_model(config)
 
-    dataset = TensorLoadingDataset(paths, config.cache_path, config.clip_preprocess,config.device,config.clip_model, debug)
+    dataset = TensorLoadingDataset(paths, config.cache_path, config.clip_preprocess,config.device,config.clip_model, config.debug, config.log_path)
 
     data = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False,
                                        num_workers=config.max_workers, collate_fn=collate_fn_remove_corrupted, drop_last=False)
