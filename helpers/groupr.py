@@ -58,6 +58,7 @@ def process(cfg:Config):
     global config
     e = time.time()
     config = cfg
+    os.makedirs(config.log_path,exist_ok=True)
 
     if config.debug:
         logging.basicConfig(filename=os.path.join(config.log_path,f'similarity_{e}.debug.txt'),
@@ -66,6 +67,7 @@ def process(cfg:Config):
                         datefmt='%H:%M:%S',
                         level=logging.DEBUG)
     os.makedirs(config.cache_path,exist_ok=True)
+    os.makedirs(config.log_path,exist_ok=True)
 
     logging.debug(f'CONFIG:\n{config}')
 
