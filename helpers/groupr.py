@@ -85,21 +85,27 @@ def process(cfg:Config):
 
     data = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False,
                                        num_workers=config.max_workers, collate_fn=collate_fn_remove_corrupted, drop_last=False)
+    if len(config.files) > 1:
+        imgs = [Image.open(file.name) for file in config.files]
+        T = [dataset.image_to_features(img) for img in imgs]
+        config.T = torch.mean(torch.stack(T,dim=0),dim=0,keepdim=True).squeeze(0)
+    else:
+        config.T = dataset.image_to_features(Image.open(config.files[0].name))
 
-    imgs = [Image.open(file.name) for file in config.files]
-    T = [dataset.image_to_features(img) for img in imgs]
-    config.T = torch.mean(torch.stack(T,dim=0),dim=0,keepdim=True).squeeze(0)
     features = Array('d', range(len(paths)), lock=False)
     m = multiprocessing.Manager()
     event = m.Event()
     w = Worker(features, config, event)
     initter=Worker.Initter()
 
-
+    logging.debug(f'INPUT TENSOR\n{config.T}')
 
     # with futures.ThreadPoolExecutor(config.max_workers) as executor:
     with tqdm.tqdm(total=len(paths),desc="Processing") as pbar:
         for result in enumerate(data):
+            if result[0] == 0:
+                logging.debug(f'IDX 0 TENSOR\n{result[1][0]}')
+
             w.process(result)
             logging.debug(f'Processed {paths[result[0]]}')
         # for result in executor.map(w.process,enumerate(data)):

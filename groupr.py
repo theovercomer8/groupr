@@ -20,6 +20,8 @@ with gr.Blocks() as app:
 
     files_list = []
     def file_change(files):
+        if files is None:
+            return {uploaded: gr.update(visible=False)}
         global files_list
         files_list = files
         v = [file.name for file in files]
