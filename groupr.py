@@ -51,6 +51,11 @@ if __name__ == "__main__":
     parser.add_argument("--precision",type=str,default='fp16',choices=['fp16','bf16','fp32'],help="Floating point precision to use. Choose based on compatibility with your GPU. (default: fp16)")
     parser.add_argument("--debug",action="store_true",help='Location to cache latents (default: ./cache)')
     cfg = parser.parse_args()
-    config = groupr.Config(max_workers=cfg.max_workers,max_results=cfg.max_results,cache_path=cfg.cache_path,debug=cfg.debug)
+    config = groupr.Config(max_workers=cfg.max_workers,
+        max_results=cfg.max_results,
+        cache_path=cfg.cache_path,
+        debug=cfg.debug, 
+        device=cfg.device, 
+        precision=cfg.precision)
     app.queue() 
     app.launch()
