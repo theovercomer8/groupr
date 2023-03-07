@@ -58,7 +58,7 @@ class Worker:
 
 
 class TensorLoadingDataset(torch.utils.data.Dataset):
-    def __init__(self, image_paths, cache_path, clip_preprocess, device, clip_model, debug, log_path):
+    def __init__(self, image_paths, cache_path, clip_preprocess, device, clip_model, debug, log_path, precision):
         self.images = image_paths
         self.cache_path = cache_path
         self.clip_preprocess = clip_preprocess
@@ -68,6 +68,9 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
         self.e = time.time()
         self.debug = debug
         self.clip_loaded = False
+        self.clip_model_name = 'ViT-L-14/openai'
+        self.precision = precision
+        self.clip_model_path = ''
         if debug:
             pid = os.getpid()
             logging.basicConfig(filename=os.path.join(self.log_path,f'similarity_{self.e}_p{pid}.debug.txt'),
@@ -217,6 +220,5 @@ def load_clip_model(cfg):
         config.tokenize = open_clip.get_tokenizer(clip_model_name)
 
         end_time = time.time()
-        if not config.quiet:
-            logging.info(f"Loaded CLIP model and data in {end_time-start_time:.2f} seconds.")
+        logging.info(f"Loaded CLIP model and data in {end_time-start_time:.2f} seconds.")
 
