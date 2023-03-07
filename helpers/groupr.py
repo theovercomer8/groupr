@@ -1,5 +1,6 @@
 from ctypes import c_wchar
 import json
+import logging
 from multiprocessing import Array, Pool, RawArray
 import multiprocessing
 import os
@@ -14,7 +15,7 @@ from concurrent import futures
 @dataclass 
 class Config:
     files = []
-    folder = ''
+    folder:str = ''
     # models can optionally be passed in directly
     clip_model = None
     clip_preprocess = None
@@ -29,12 +30,12 @@ class Config:
     chunk_size: int = 2048
     data_path: str = os.path.join(base_dir, 'data')
     device: str = ("mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu")
-    flavor_intermediate_count: int = 2048
     quiet: bool = False # when quiet progress bars are not shown
     tokenize = None
-    T = None
-    max_workers = 8
-    max_results = 100
+    T:torch.Tensor = None
+    max_workers:int = 8
+    max_results:int = 100
+    debug:bool = False
     
 def collate_fn_remove_corrupted(batch):
   """Collate function that allows to remove corrupted examples in the
@@ -52,21 +53,23 @@ def collate_fn_remove_corrupted(batch):
 #             similarity = torch.matmul(y,image2_features.T)
 #         return similarity[0][0].item()
 
-def process(files,folder):
+def process(cfg:Config):
     global config
-    try:
-        config
-    except NameError:
-        config = Config()
-    if config is None:
-        config = Config()
+    e = time.time()
+    config = cfg
 
+    if config.debug:
+        logging.basicConfig(filename=os.path.join(config.log_path,f'similarity_{e}.debug.txt'),
+                        filemode='a',
+                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        datefmt='%H:%M:%S',
+                        level=logging.DEBUG)
     os.makedirs(config.cache_path,exist_ok=True)
 
-    config.files = files
-    config.folder = folder
+    logging.debug(f'CONFIG:\n{config}')
+
     paths = []
-    for root, dirs, files in os.walk(folder, topdown=False):
+    for root, dirs, files in os.walk(config.folder, topdown=False):
         for name in files:
             
             if os.path.splitext(os.path.split(name)[1])[1].upper() not in ['.JPEG','.JPG','.JPE', '.PNG', '.WEBP']:
@@ -97,6 +100,7 @@ def process(files,folder):
     with tqdm.tqdm(total=len(paths),desc="Processing") as pbar:
         for result in enumerate(data):
             w.process(result)
+            logging.debug(f'Processed {paths[result[0]]}')
         # for result in executor.map(w.process,enumerate(data)):
         # pool = Pool(config.max_workers, initializer=initter, initargs=(features,))
         # for result in pool.imap_unordered(w, enumerate(data), chunksize=64):
@@ -106,16 +110,15 @@ def process(files,folder):
     
     d = {}
     for idx, p in enumerate(paths):
-         d[p] = features[idx], p
+         d[p] = features[idx]
 
-    a = sorted(d.items(), key=lambda x: x[1][0], reverse=True)[:config.max_results]
+    a = sorted(d.items(), key=lambda x: x[1], reverse=True)[:config.max_results]
     json_object = json.dumps(a, indent=4)
     md = ''
     for item in a:
-        md += f'### {item[1][0]}\n![{item[0]}]({item[1][1].replace(" ","%20")} "{item[1][0]}")\n\n\n'
+        md += f'### {item[1]}\n![{item[0]}]({item[0].replace(" ","%20")} "{item[1]}")\n\n\n'
     # Writing to sample.json
 
-    e = time.time()
     os.makedirs(config.log_path,exist_ok=True)
     with open(os.path.join(config.log_path,f'similarity_{e}.json'), "w") as outfile:
         outfile.write(json_object)
@@ -124,4 +127,5 @@ def process(files,folder):
     with open(os.path.join(config.log_path,f'similarity_{e}.md'), "w")  as outfile:
         outfile.write(md)
 
+    del config.T
     return a

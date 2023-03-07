@@ -50,9 +50,11 @@ class Worker:
             
             features = data_entry[0]
             t = self.similarity(self.config.T,features)
+            logging.debug(f'Got similarity {t}')
+            del features
             shared_list[i] = t
         except Exception as e:
-            print(e)
+            logging.error(f'Got exception processing {args}: {e}')
 
 
 class TensorLoadingDataset(torch.utils.data.Dataset):
@@ -119,8 +121,6 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
         img = img[y:y + new_height, x:x + new_width]
 
         
-        # Save resized image in dst_img_folder
-        # cv2.imwrite(os.path.join(dst_img_folder, new_filename), img, [cv2.IMWRITE_JPEG_QUALITY, 100])
         img = Image.fromarray(img)
         return img
         
@@ -130,6 +130,7 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
             image_features = self.clip_model.encode_image(images)
             image_features /= image_features.norm(dim=-1, keepdim=True)
         return image_features
+
     def __getitem__(self, idx) -> torch.Tensor:
         try:
     
@@ -142,38 +143,34 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
             if os.path.exists(name):
                 try:
                     features = torch.load(name,map_location=torch.device(self.device))
+                    logging.debug(f'Loaded {name}')
                 except UnpicklingError as e:
                     pass
             elif os.path.exists(old_cached_name):
                 try:
                     features = torch.load(old_cached_name,map_location=torch.device(self.device))
+                    logging.debug(f'Loaded {old_cached_name}')
                 except UnpicklingError as e:
                     pass
 
             elif os.path.exists(cached_name):
                 try:
                     features = torch.load(cached_name,map_location=torch.device(self.device))
+                    logging.debug(f'Loaded {cached_name}')
                 except UnpicklingError as e:
                     pass
             if features is None:
                 img = Image.open(img_path).convert('RGB')
                 features =  self.image_to_features(img)
                 torch.save(features, cached_name)
-            
-            # cached_name = self.get_cached_path(img_path,'_thumb.webp')
-
-            # if not os.path.exists(cached_name):
-            #     if img is None:
-            #         img = Image.open(img_path).convert('RGB')
-            #         img = self.image_to_thumb(img)
-            #         img.save(cached_name,'WEBP')
+                logging.debug(f'Saved {cached_name}')
 
 
             
                 
 
         except Exception as e:
-            print(f"Could not load image path: {img_path}, error: {e}")
+            logging.error(f'Could not load image path: {img_path}, error: {e}')
             return None
 
         return features
