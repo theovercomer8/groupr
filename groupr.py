@@ -45,8 +45,9 @@ if __name__ == "__main__":
     parser.add_argument("--max_workers",type=int,default=8,help='Max workers to use for scanning. Lower to decerease VRAM usage. (default: 8)')
     parser.add_argument("--max_results",type=int,default=100,help='Max similar results to return. (default: 100)')
     parser.add_argument("--cache_path",type=str,default='./cache',help='Location to cache latents (default: ./cache)')
+    parser.add_argument("--device",type=str,default='cuda',choices=['cuda','cpu'],help='Device (default: cuda)')
+    parser.add_argument("--precision",type=str,default='fp16',choices=['fp16','bf16','fp32'],help="Floating point precision to use. Choose based on compatibility with your GPU. (default: fp16)")
     parser.add_argument("--debug",action="store_true",help='Location to cache latents (default: ./cache)')
-
     cfg = parser.parse_args()
     config = groupr.Config(max_workers=cfg.max_workers,max_results=cfg.max_results,cache_path=cfg.cache_path,debug=cfg.debug)
     app.queue() 

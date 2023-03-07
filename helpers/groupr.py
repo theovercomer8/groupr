@@ -36,6 +36,7 @@ class Config:
     max_workers:int = 8
     max_results:int = 100
     debug:bool = False
+    precision:str = 'fp16'
     
 def collate_fn_remove_corrupted(batch):
   """Collate function that allows to remove corrupted examples in the

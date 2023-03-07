@@ -186,7 +186,7 @@ def load_clip_model(cfg):
         config.clip_model, _, config.clip_preprocess = open_clip.create_model_and_transforms(
             clip_model_name, 
             pretrained=clip_model_pretrained_name, 
-            precision='fp16' if config.device == 'cuda' else 'fp32',
+            precision=config.precision,
             device=config.device,
             jit=False,
             cache_dir=config.clip_model_path
