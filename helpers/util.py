@@ -138,14 +138,20 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
         img = Image.fromarray(img)
         return img
         
-    def image_to_features(self, image: Image) -> torch.Tensor:
+    def image_to_features(self, image: Image, idx = -1) -> torch.Tensor:
         if not self.clip_loaded:
             load_clip_model(self)
             self.clip_loaded = True
         images = self.clip_preprocess(image).unsqueeze(0).to(self.device)
+        if self.debug and idx == 0:
+            logging.debug(f'PREPROCESSED\n{images}')
         with torch.no_grad(), torch.cuda.amp.autocast():
             image_features = self.clip_model.encode_image(images)
+            if self.debug and idx == 0:
+                logging.debug(f'ENCODED\n{image_features}')
             image_features /= image_features.norm(dim=-1, keepdim=True)
+            if self.debug and idx == 0:
+                logging.debug(f'NORMALIZED\n{image_features}')
         return image_features
 
     def __getitem__(self, idx) -> torch.Tensor:
@@ -185,7 +191,7 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
                     pass
             if features is None:
                 img = Image.open(img_path).convert('RGB')
-                features =  self.image_to_features(img)
+                features =  self.image_to_features(img,idx=idx)
                 torch.save(features, cached_name)
                 logging.debug(f'Saved {cached_name}')
 
