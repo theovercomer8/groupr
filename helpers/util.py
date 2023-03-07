@@ -58,12 +58,21 @@ class Worker:
 
 
 class TensorLoadingDataset(torch.utils.data.Dataset):
-    def __init__(self, image_paths, cache_path, clip_preprocess, device, clip_model):
+    def __init__(self, image_paths, cache_path, clip_preprocess, device, clip_model, debug):
         self.images = image_paths
         self.cache_path = cache_path
         self.clip_preprocess = clip_preprocess
         self.device = device
         self.clip_model = clip_model
+
+        if debug:
+            e = time.time()
+            pid = os.getpid()
+            logging.basicConfig(filename=os.path.join(config.log_path,f'similarity_{e}_p{pid}.debug.txt'),
+                            filemode='a',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
 
     def __len__(self):
         return len(self.images)
@@ -167,7 +176,8 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
 
 
             
-                
+            if idx == 0:
+                logging.debug(f'IDX 0 TENSOR\n{features}')
 
         except Exception as e:
             logging.error(f'Could not load image path: {img_path}, error: {e}')
