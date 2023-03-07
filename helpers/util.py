@@ -67,6 +67,7 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
         self.log_path = log_path
         self.e = time.time()
         self.debug = debug
+        self.clip_loaded = False
         if debug:
             pid = os.getpid()
             logging.basicConfig(filename=os.path.join(self.log_path,f'similarity_{self.e}_p{pid}.debug.txt'),
@@ -135,8 +136,9 @@ class TensorLoadingDataset(torch.utils.data.Dataset):
         return img
         
     def image_to_features(self, image: Image) -> torch.Tensor:
-        if self.clip_model is None or self.clip_preprocess is None:
+        if not self.clip_loaded:
             load_clip_model(self)
+            self.clip_loaded = True
         images = self.clip_preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad(), torch.cuda.amp.autocast():
             image_features = self.clip_model.encode_image(images)
