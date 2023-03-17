@@ -39,6 +39,7 @@ class Config:
     precision:str = None
     clip_weight:float = 1.0
     phash_weight:float = 1.0
+    shared_clip:bool = False
     
 def collate_fn_remove_corrupted(batch):
   """Collate function that allows to remove corrupted examples in the
@@ -107,6 +108,8 @@ def process(cfg:Config):
     event = m.Event()
 
     w = Worker(features_list, hamm_list, event, config.debug, [file.name for file in config.files], config.hashfunc, config.hashmethod, config.log_path, config.cache_path,config.clip_model_name,config.precision,config.device,config.clip_model_path)
+    if config.shared_clip:
+        w.load_clip_model()
     # if config.clip_model is None:
     #     w.load_clip_model()
 
@@ -157,7 +160,7 @@ def process(cfg:Config):
     d = {}
     for idx, p in enumerate(paths):
          d[p] = (features_list[idx] * config.clip_weight) + (-0.1 * config.phash_weight * hamm_list[idx]), features_list[idx], hamm_list[idx]
-
+    
     a = sorted(d.items(), key=lambda x: x[1][0], reverse=True)[:config.max_results]
     json_object = json.dumps(a, indent=4)
     md = ''
@@ -173,4 +176,4 @@ def process(cfg:Config):
     with open(os.path.join(config.log_path,f'similarity_{e}.md'), "w")  as outfile:
         outfile.write(md)
 
-    return a
+    return d
