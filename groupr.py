@@ -27,7 +27,7 @@ with gr.Blocks() as app:
         v = [file.name for file in files]
         return {uploaded: gr.update(visible=True, value = v)}
     f.change(file_change,inputs=f, outputs=uploaded)
-    phash_type = gr.Dropdown(['ahash', 'phash','dhash','whash-haar','whash-db4','colorhash','crop-resistant'],value='crop-resistant',label="PHASH Method")
+    phash_type = gr.Dropdown(['ahash', 'phash','dhash','whash-haar','whash-db4','colorhash','crop-resistant'],value='phash',label="PHASH Method")
     clip_weight = gr.Slider(0,1.0,1.0,step=0.1,label="CLIP Weight")
     phash_weight = gr.Slider(0,1.0,1.0,step=0.1,label="PHASH Weight")
     go_btn = gr.Button("Goooooooo!")
